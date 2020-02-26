@@ -94,12 +94,10 @@ while getopts 'hlip:s:r:t:' flag; do
   esac
 done
 
-if [ $resource ] && [ $title ] ; then
+if [ $server ] && [ $resource ] && [ $title ] ; then
   run
-fi
-
-if [ $# -lt 3 ] ; then
-  echo "Two arguments required"
+else
+  echo "-s, -r & -t flags required"
   echo ""
   help
   exit 1
