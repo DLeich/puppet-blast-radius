@@ -33,12 +33,14 @@ help () {
 query () {
   if [ $insecure ] ; then
     http=http
+    http_port=8080
   else
     http=https
+    http_port=8081
   fi
 
   if [ -z $port ] ; then
-    api_port=8080
+    api_port=$http_port
   else
     api_port=$port
   fi
