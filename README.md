@@ -14,9 +14,9 @@ Usage:
           blast_radius -s puppetdb_hostname -r resource_type -t resource_title
 
 examples:
-          blast_radius -s puppetdb.company.net -r class -t profile::base
-          blast_radius -s puppetdb.company.net -r file -t /foo/bar
-          blast_radius -s puppetdb.company.net -i -p 80 -r package -t httpd
+          blast_radius -s puppetdb.example.com -r class -t profile::base
+          blast_radius -s puppetdb.example.com -r file -t /foo/bar
+          blast_radius -s puppetdb.example.com -i -p 80 -r package -t httpd
 
 -s        server
           This is the PuppetDB host to query
@@ -42,24 +42,24 @@ examples:
 To see what nodes include an entire class, simply run the script as follows:
 
 ```
-$ ./blast_radius.sh -s puppetdb.company.net -r class -t profile::base
+$ ./blast_radius.sh -s puppetdb.example.com -r class -t profile::base
 Searching for resource type: Class
 Searching for resource title: Profile::Base
 
-Number of matching hosts queried from PuppetDB host puppetdb.company.net:
+Number of matching hosts queried from PuppetDB host puppetdb.example.com:
        4
 ```
 
 To get a list of all hosts, use the -l flag:
 
 ```
-$ ./blast_radius.sh -s puppetdb.company.net -r class -t profile::base
+$ ./blast_radius.sh -s puppetdb.example.com -r class -t profile::base
 Searching for resource type: Class
 Searching for resource title: Profile::Base
 
-Hosts matching query PuppetDB host puppetdb.company.net:
-"server1.company.net"
-"server2.company.net"
-"server3.company.net"
-"server4.company.net"
+Hosts matching query PuppetDB host puppetdb.example.com:
+"server1.example.com"
+"server2.example.com"
+"server3.example.com"
+"server4.example.com"
 ```
