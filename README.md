@@ -16,13 +16,13 @@ Usage:
 examples:
           blast_radius -s puppetdb.example.com -r class -t profile::base
           blast_radius -s puppetdb.example.com -r file -t /foo/bar
-          blast_radius -s puppetdb.example.com -i -p 80 -r package -t httpd
+          blast_radius -s puppetdb.example.com -i -p 8080 -r package -t httpd
 
 -s        server
           This is the PuppetDB host to query
 
 -p        port
-          The port the PuppetDB API is running on (defaults to 8080)
+          The port the PuppetDB API is running on (defaults to 8081)
 
 -i        insecure
           Boolean flag to mark if PuppetDB API is running on http (defaults to false)
