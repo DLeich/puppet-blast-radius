@@ -53,7 +53,7 @@ Number of matching hosts queried from PuppetDB host puppetdb.example.com:
 To get a list of all hosts, use the -l flag:
 
 ```
-$ ./blast_radius.sh -s puppetdb.example.com -r class -t profile::base
+$ ./blast_radius.sh -s puppetdb.example.com -r class -t profile::base -l
 Searching for resource type: Class
 Searching for resource title: Profile::Base
 
