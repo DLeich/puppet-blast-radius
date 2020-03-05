@@ -53,9 +53,9 @@ run () {
   capitalized_resource="$(tr '[:lower:]' '[:upper:]' <<< ${resource:0:1})${resource:1}"
 
   if [ $capitalized_resource == 'Class' ] ; then
-  capitalized_title=`awk 'BEGIN{FS="::"; OFS="::"} { for (i=1;i<=NF;i++) $i=toupper(substr($i,1,1)) substr($i,2)} 1' <<< $title`
+    capitalized_title=`awk 'BEGIN{FS="::"; OFS="::"} { for (i=1;i<=NF;i++) $i=toupper(substr($i,1,1)) substr($i,2)} 1' <<< $title`
   else
-     capitalized_title="$(tr '[:lower:]' '[:upper:]' <<< ${title:0:1})${title:1}"
+    capitalized_title="$(tr '[:lower:]' '[:upper:]' <<< ${title:0:1})${title:1}"
   fi
 
   echo "Searching for resource type: ${capitalized_resource}"
