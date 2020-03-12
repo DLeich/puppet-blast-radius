@@ -46,20 +46,20 @@ query () {
   fi
 
   curl -s -X GET -H 'Accept: Application/json' "${http}://${server}:${api_port}/v3/resources/${capitalized_resource}" \
-  --data-urlencode "query=[\"=\", \"title\", \"${capitalized_title}\"]"
+  --data-urlencode "query=[\"=\", \"title\", \"${corrected_title}\"]"
 }
 
 run () {
   capitalized_resource="$(tr '[:lower:]' '[:upper:]' <<< ${resource:0:1})${resource:1}"
 
   if [ $capitalized_resource == 'Class' ] ; then
-    capitalized_title=`awk 'BEGIN{FS="::"; OFS="::"} { for (i=1;i<=NF;i++) $i=toupper(substr($i,1,1)) substr($i,2)} 1' <<< $title`
+    corrected_title=`awk 'BEGIN{FS="::"; OFS="::"} { for (i=1;i<=NF;i++) $i=toupper(substr($i,1,1)) substr($i,2)} 1' <<< $title`
   else
-    capitalized_title="$(tr '[:lower:]' '[:upper:]' <<< ${title:0:1})${title:1}"
+    corrected_title=$title
   fi
 
   echo "Searching for resource type: ${capitalized_resource}"
-  echo "Searching for resource title: ${capitalized_title}"
+  echo "Searching for resource title: ${corrected_title}"
   echo ""
 
   if [ $list ] ; then
