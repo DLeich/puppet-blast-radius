@@ -28,6 +28,9 @@ help () {
   echo ""
   echo "-l        list"
   echo "          List the hostnames of nodes which utilize the named resource"
+  echo ""
+  echo "-3        v3 API"
+  echo "          Use the PuppetDB v3 API for legacy servers"
 }
 
 query () {
@@ -45,8 +48,14 @@ query () {
     api_port=$port
   fi
 
-  curl -s -X GET -H 'Accept: Application/json' "${http}://${server}:${api_port}/v3/resources/${capitalized_resource}" \
-  --data-urlencode "query=[\"=\", \"title\", \"${corrected_title}\"]"
+  if [[ $api -eq 3 ]] ; then
+    curl -s -X GET -H 'Accept: Application/json' "${http}://${server}:${api_port}/v3/resources/${capitalized_resource}" \
+    --data-urlencode "query=[\"=\", \"title\", \"${corrected_title}\"]"
+  else
+    curl -s -X POST "${http}://${server}:${api_port}/pdb/query/v4/resources/${capitalized_resource}" \
+    -H 'Content-Type:application/json' \
+    -d "{\"query\":[\"=\", \"title\", \"${corrected_title}\"]}"
+  fi
 }
 
 run () {
@@ -73,7 +82,7 @@ run () {
   fi
 }
 
-while getopts 'hlip:s:r:t:' flag; do
+while getopts 'hlip:s:r:t:3' flag; do
   case "${flag}" in
     h) help
        exit 0
@@ -89,6 +98,8 @@ while getopts 'hlip:s:r:t:' flag; do
     r) resource=$OPTARG
        ;;
     t) title=$OPTARG
+       ;;
+    3) api=3
        ;;
     *) help
        exit 1
