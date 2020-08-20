@@ -29,6 +29,9 @@ help () {
   echo "-l        list"
   echo "          List the hostnames of nodes which utilize the named resource"
   echo ""
+  echo "-f        flip"
+  echo "          Flip the results to display a list of nodes which do not include the resource"
+  echo ""
   echo "-3        v3 API"
   echo "          Use the PuppetDB v3 API for legacy servers"
 }
@@ -49,13 +52,46 @@ query () {
   fi
 
   if [[ $api -eq 3 ]] ; then
-    curl -s -X GET -H 'Accept: Application/json' "${http}://${server}:${api_port}/v3/resources/${capitalized_resource}" \
+    curl -s -X GET -H 'Accept: Application/json' \
+    "${http}://${server}:${api_port}/v3/resources/${capitalized_resource}" \
     --data-urlencode "query=[\"=\", \"title\", \"${corrected_title}\"]"
   else
     curl -s -X POST "${http}://${server}:${api_port}/pdb/query/v4/resources/${capitalized_resource}" \
     -H 'Content-Type:application/json' \
     -d "{\"query\":[\"=\", \"title\", \"${corrected_title}\"]}"
   fi
+}
+
+active_nodes () {
+  if [ $insecure ] ; then
+    http=http
+    http_port=8080
+  else
+    http=https
+    http_port=8081
+  fi
+
+  if [ -z $port ] ; then
+    api_port=$http_port
+  else
+    api_port=$port
+  fi
+
+  if [[ $api -eq 3 ]] ; then
+    curl -s -X GET -H 'Accept: Application/json' \
+    "${http}://${server}:${api_port}/v3/nodes" \
+    --data-urlencode "query=[\"=\", \"deactivated\", null]"
+  else
+    curl -s -X POST "${http}://${server}:${api_port}/pdb/query/v4/nodes" \
+    -H 'Content-Type:application/json' \
+    -d "{\"query\":[\"=\", \"deactivated\", null]}"
+  fi
+}
+
+flip_results () {
+  allnodes=`active_nodes | jq '.[].certname'`
+  matchingnodes=`query | jq '.[].certname'`
+  echo ${allnodes[@]} ${matchingnodes[@]} | tr ' ' '\n' | sort | uniq -u
 }
 
 run () {
@@ -67,22 +103,39 @@ run () {
     corrected_title=$title
   fi
 
-  echo "Searching for resource type: ${capitalized_resource}"
-  echo "Searching for resource title: ${corrected_title}"
-  echo ""
+  if [ $flip ] ; then
+    echo "Searching for nodes which do not inlcude:"
+    echo "${capitalized_resource}[${corrected_title}]"
+    echo ""
 
-  if [ $list ] ; then
-    echo "Hosts matching query PuppetDB host ${server}:"
-    query | jq '.[].certname'
-    exit 0
+    if [ $list ] ; then
+      echo "Hosts matching query from PuppetDB host ${server}:"
+      flip_results
+      exit 0
+    else
+      echo "Number of matching hosts queried from PuppetDB host ${server}:"
+      flip_results | wc -l
+      exit 0
+    fi
+
   else
-    echo "Number of matching hosts queried from PuppetDB host ${server}:"
-    query | jq '.[].certname' | wc -l
-    exit 0
+    echo "Searching for resource type: ${capitalized_resource}"
+    echo "Searching for resource title: ${corrected_title}"
+    echo ""
+
+    if [ $list ] ; then
+      echo "Hosts matching query from PuppetDB host ${server}:"
+      query | jq '.[].certname'
+      exit 0
+    else
+      echo "Number of matching hosts queried from PuppetDB host ${server}:"
+      query | jq '.[].certname' | wc -l
+      exit 0
+    fi
   fi
 }
 
-while getopts 'hlip:s:r:t:3' flag; do
+while getopts 'hlfip:s:r:t:3' flag; do
   case "${flag}" in
     h) help
        exit 0
@@ -94,6 +147,8 @@ while getopts 'hlip:s:r:t:3' flag; do
     i) insecure=true
        ;;
     l) list=true
+       ;;
+    f) flip=true
        ;;
     r) resource=$OPTARG
        ;;
