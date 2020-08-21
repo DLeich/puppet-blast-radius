@@ -32,8 +32,8 @@ help () {
   echo "-f        flip"
   echo "          Flip the results to display a list of nodes which do not include the resource"
   echo ""
-  echo "-3        v3 API"
-  echo "          Use the PuppetDB v3 API for legacy servers"
+  echo "-e        environment"
+  echo "          Filter results to only include nodes that are in the specified Puppet environment"
 }
 
 query () {
@@ -51,15 +51,15 @@ query () {
     api_port=$port
   fi
 
-  if [[ $api -eq 3 ]] ; then
-    curl -s -X GET -H 'Accept: Application/json' \
-    "${http}://${server}:${api_port}/v3/resources/${capitalized_resource}" \
-    --data-urlencode "query=[\"=\", \"title\", \"${corrected_title}\"]"
+  if [ -z $environment ] ; then
+    curl_data="{\"query\":[\"=\", \"title\", \"${corrected_title}\"]}"
   else
-    curl -s -X POST "${http}://${server}:${api_port}/pdb/query/v4/resources/${capitalized_resource}" \
-    -H 'Content-Type:application/json' \
-    -d "{\"query\":[\"=\", \"title\", \"${corrected_title}\"]}"
+    curl_data="{\"query\":[\"and\",[\"=\", \"title\", \"${corrected_title}\"],[\"=\", \"environment\", \"${environment}\"]]}"
   fi
+
+  curl -s -X POST "${http}://${server}:${api_port}/pdb/query/v4/resources/${capitalized_resource}" \
+    -H 'Content-Type:application/json' \
+    -d "${curl_data}"
 }
 
 active_nodes () {
@@ -77,15 +77,16 @@ active_nodes () {
     api_port=$port
   fi
 
-  if [[ $api -eq 3 ]] ; then
-    curl -s -X GET -H 'Accept: Application/json' \
-    "${http}://${server}:${api_port}/v3/nodes" \
-    --data-urlencode "query=[\"=\", \"deactivated\", null]"
+  if [ -z $environment ] ; then
+    curl_data="{\"query\":[\"=\", \"deactivated\", null]}"
   else
-    curl -s -X POST "${http}://${server}:${api_port}/pdb/query/v4/nodes" \
-    -H 'Content-Type:application/json' \
-    -d "{\"query\":[\"=\", \"deactivated\", null]}"
+    curl_data="{\"query\":[\"and\",[\"=\", \"deactivated\", null],[\"=\", \"catalog_environment\", \"${environment}\"]]}"
   fi
+
+  curl -s -X POST "${http}://${server}:${api_port}/pdb/query/v4/nodes" \
+    -H 'Content-Type:application/json' \
+    -d "${curl_data}"
+
 }
 
 flip_results () {
@@ -135,7 +136,7 @@ run () {
   fi
 }
 
-while getopts 'hlfip:s:r:t:3' flag; do
+while getopts 'hlfe:ip:s:r:t:' flag; do
   case "${flag}" in
     h) help
        exit 0
@@ -150,11 +151,11 @@ while getopts 'hlfip:s:r:t:3' flag; do
        ;;
     f) flip=true
        ;;
+    e) environment=$OPTARG
+       ;;
     r) resource=$OPTARG
        ;;
     t) title=$OPTARG
-       ;;
-    3) api=3
        ;;
     *) help
        exit 1
